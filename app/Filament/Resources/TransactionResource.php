@@ -4,9 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Enums\TransactionTypeEnum;
 use App\Filament\Resources\TransactionResource\Pages;
-use App\Filament\Resources\TransactionResource\RelationManagers;
 use App\Models\Transaction;
-use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -15,8 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TransactionResource extends Resource
 {
@@ -40,8 +37,10 @@ class TransactionResource extends Resource
                     ->label('Transaction Type')
                     ->options(TransactionTypeEnum::class)->inline()
                     ->required(),
-                TextInput::make('transaction_date')
+                DatePicker::make('transaction_date')
                     ->label('Transaction Date')
+                    ->native(false)
+                    ->closeOnDateSelection()
                     ->required()
                     ->default(now()->format('Y-m-d')),
             ])->columns(1);
@@ -58,8 +57,8 @@ class TransactionResource extends Resource
                 TextColumn::make('amount')
                     ->label('Amount'),
                 TextColumn::make('type')
-                ->badge()
-                ->color(fn ($record) => $record->type->getColor()),
+                    ->badge()
+                    ->color(fn ($record) => $record->type->getColor()),
                 TextColumn::make('transaction_date')
                     ->label('Transaction Date')
                     ->date(),

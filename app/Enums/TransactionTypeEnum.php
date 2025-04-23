@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum TransactionTypeEnum: string implements HasLabel,HasColor
+enum TransactionTypeEnum: string implements HasColor, HasLabel
 {
     case INCOME = 'income';
     case EXPENSE = 'expense';
@@ -18,13 +18,11 @@ enum TransactionTypeEnum: string implements HasLabel,HasColor
         };
     }
 
-    public function getColor(): string | array | null
+    public function getColor(): string|array|null
     {
         return match ($this) {
             self::INCOME => 'success',
             self::EXPENSE => 'danger',
         };
     }
-
-   
 }
