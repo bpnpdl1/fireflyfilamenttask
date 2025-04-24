@@ -41,7 +41,7 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\FilamentInfoWidget::class,
             ])
             ->brandName('Transaction Tracker')
-            ->brandLogo("https://thefireflytech.com/images/logo.svg")
+            ->brandLogo('https://thefireflytech.com/images/logo.svg')
             ->spa(true)
             ->middleware([
                 EncryptCookies::class,

@@ -13,6 +13,9 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class TransactionResource extends Resource
@@ -55,6 +58,7 @@ class TransactionResource extends Resource
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('amount')
+                   ->money('NPR')
                     ->label('Amount'),
                 TextColumn::make('type')
                     ->badge()
@@ -64,8 +68,38 @@ class TransactionResource extends Resource
                     ->date(),
             ])
             ->filters([
-                //
-            ])
+                SelectFilter::make('transaction_date')
+                    ->options([
+                        'today' => 'Today',
+                        'yesterday' => 'Yesterday',
+                        'this_week' => 'This Week',
+                        'last_week' => 'Last Week',
+                        'this_month' => 'This Month',
+                    ])
+                    ->query(function ($query, $state) {
+                        if ($state === 'today') {
+                            return $query->whereDate('transaction_date', now());
+                        } elseif ($state === 'yesterday') {
+                            return $query->whereDate('transaction_date', now()->subDay());
+                        } elseif ($state === 'this_week') {
+                            return $query->whereBetween('transaction_date', [
+                                now()->startOfWeek(),
+                                now()->endOfWeek(),
+                            ]);
+                        } elseif ($state === 'last_week') {
+                            return $query->whereBetween('transaction_date', [
+                                now()->subWeek()->startOfWeek(),
+                                now()->subWeek()->endOfWeek(),
+                            ]);
+                        } elseif ($state === 'this_month') {
+                            return $query->whereMonth('transaction_date', now()->month)
+                                        ->whereYear('transaction_date', now()->year);
+                        }
+                        
+                        return $query;
+                    }),
+
+            ], FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
