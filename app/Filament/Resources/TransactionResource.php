@@ -68,6 +68,14 @@ class TransactionResource extends Resource
                     ->date(),
             ])
             ->filters([
+                SelectFilter::make('type')
+                    ->options([
+                        'income' => 'Income',
+                        'expense' => 'Expense',
+                    ])
+                    ->label('Transaction Type')
+                    ->placeholder('All Types'),
+                
                 SelectFilter::make('transaction_date')
                     ->options([
                         'today' => 'Today',
@@ -75,30 +83,63 @@ class TransactionResource extends Resource
                         'this_week' => 'This Week',
                         'last_week' => 'Last Week',
                         'this_month' => 'This Month',
+                        'last_month' => 'Last Month',
+                        'this_year' => 'This Year',
                     ])
+                    ->label('Date Range')
+                    ->placeholder('All Time')
                     ->query(function ($query, $state) {
-                        if ($state === 'today') {
-                            return $query->whereDate('transaction_date', now());
-                        } elseif ($state === 'yesterday') {
-                            return $query->whereDate('transaction_date', now()->subDay());
-                        } elseif ($state === 'this_week') {
-                            return $query->whereBetween('transaction_date', [
+                        return match ($state) {
+                            'today' => $query->whereDate('transaction_date', now()),
+                            'yesterday' => $query->whereDate('transaction_date', now()->subDay()),
+                            'this_week' => $query->whereBetween('transaction_date', [
                                 now()->startOfWeek(),
                                 now()->endOfWeek(),
-                            ]);
-                        } elseif ($state === 'last_week') {
-                            return $query->whereBetween('transaction_date', [
+                            ]),
+                            'last_week' => $query->whereBetween('transaction_date', [
                                 now()->subWeek()->startOfWeek(),
                                 now()->subWeek()->endOfWeek(),
-                            ]);
-                        } elseif ($state === 'this_month') {
-                            return $query->whereMonth('transaction_date', now()->month)
-                                        ->whereYear('transaction_date', now()->year);
+                            ]),
+                            'this_month' => $query->whereMonth('transaction_date', now()->month)
+                                                 ->whereYear('transaction_date', now()->year),
+                            'last_month' => $query->whereMonth('transaction_date', now()->subMonth()->month)
+                                                 ->whereYear('transaction_date', now()->subMonth()->year),
+                            'this_year' => $query->whereYear('transaction_date', now()->year),
+                            default => $query,
+                        };
+                    }),
+                
+                Filter::make('date_range')
+                    ->form([
+                        DatePicker::make('from')
+                            ->placeholder(fn ($state): string => now()->subMonth()->format('M d, Y')),
+                        DatePicker::make('until')
+                            ->placeholder(fn ($state): string => now()->format('M d, Y')),
+                    ])
+                    ->query(function ($query, array $data): mixed {
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn($query) => $query->whereDate('transaction_date', '>=', $data['from']),
+                            )
+                            ->when(
+                                $data['until'],
+                                fn($query) => $query->whereDate('transaction_date', '<=', $data['until']),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        
+                        if ($data['from'] ?? null) {
+                            $indicators[] = 'From ' . Carbon\Carbon::parse($data['from'])->format('M d, Y');
                         }
                         
-                        return $query;
+                        if ($data['until'] ?? null) {
+                            $indicators[] = 'Until ' . Carbon\Carbon::parse($data['until'])->format('M d, Y');
+                        }
+                        
+                        return $indicators;
                     }),
-
             ], FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\EditAction::make(),
