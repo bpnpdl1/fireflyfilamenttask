@@ -3,29 +3,45 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Transaction;
+use App\Traits\HasMonth;
 use Carbon\Carbon;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\On;
 
 class ExpenseBarChartWidget extends ChartWidget
 {
+
+    public $selectedMonth;
+    
     protected static ?string $heading = 'Monthly Expense Breakdown';
     
     protected static ?string $maxHeight = '300px';
     
     protected int | string | array $columnSpan = 'full';
     
-    // This property will store the selected month from the parent page
-    public ?string $selectedMonth = null;
     
     public function mount(): void
     {
+        // Using the parent mount method
+        parent::mount();
+        
         // Default to current month if not provided
         if (!$this->selectedMonth) {
             $this->selectedMonth = now()->format('Y-m');
         }
+    }
+
+    #[On('update-selected-month')]
+    public function updateSelectedMonth($month): void
+    {
+        // Update the selectedMonth property
+        $this->selectedMonth = $month;
+        
+        // Force chart to refresh with new data
+        $this->dispatch('chartjs-update');
     }
 
     protected function getData(): array

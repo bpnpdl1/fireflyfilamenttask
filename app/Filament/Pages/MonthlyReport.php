@@ -83,5 +83,17 @@ class MonthlyReport extends Page
         return $this->getIncome() - $this->getExpense();
     }
 
+    public function updateSelectedMonth($month)
+    {
+        // Update the selectedMonth property
+        $this->selectedMonth = $month;
+        
+        // Refresh all widgets to reflect the new month - using the correct method
+        $this->dispatch('filament.refreshWidgets');
+        
+        // Dispatch event for any components that might be listening
+        $this->dispatch('update-selected-month', month: $month);
+    }
+
 
 }

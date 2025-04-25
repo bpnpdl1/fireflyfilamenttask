@@ -3,37 +3,50 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Transaction;
+use App\Traits\HasMonth;
 use Carbon\Carbon;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\On;
 
 class IncomeBarChartWidget extends ChartWidget
 {
+   
+    public $selectedMonth;
+    
     protected static ?string $heading = 'Monthly Income Breakdown';
     
     protected static ?string $maxHeight = '300px';
     
     protected int | string | array $columnSpan = 'full';
     
-    // This property will store the selected month from the parent page
-    public ?string $selectedMonth = null;
     
     public function mount(): void
     {
-        // Default to current month if not provided
+        parent::mount();
+
         if (!$this->selectedMonth) {
             $this->selectedMonth = now()->format('Y-m');
         }
+    }
+
+    #[On('update-selected-month')]
+    public function updateSelectedMonth($month): void
+    {
+        // Update the selectedMonth property
+        $this->selectedMonth = $month;
+        
+        // Force chart to refresh with new data
+        $this->dispatch('chartjs-update');
     }
 
     protected function getData(): array
     {
         // Parse selected month
         $date = Carbon::parse($this->selectedMonth);
-        $daysInMonth = $date->daysInMonth;
-        
+       
         // Calculate week ranges for the month
         $weeks = [];
         $currentDay = $date->copy()->startOfMonth();

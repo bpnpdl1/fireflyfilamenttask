@@ -7,11 +7,23 @@ use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 
 class TransactionCountWidget extends BaseWidget
 {
 
     public $selectedMonth;
+
+
+
+    #[On('update-selected-month')]
+    public function updateSelectedMonth($month): void
+    {
+        $this->selectedMonth = $month;
+        
+        // Force refresh of the widget stats to show updated numbers
+        $this->dispatch('reload');
+    }
     
     protected function getStats(): array
     {
