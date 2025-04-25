@@ -6,6 +6,7 @@ use App\Filament\Widgets\TransactionCountWidget;
 use App\Filament\Widgets\TransactionLineChartWidget;
 use App\Filament\Widgets\TransactionPieChartWidget;
 use App\Models\Transaction;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
@@ -56,7 +57,8 @@ class MonthlyReport extends Page
                 ])
                 ->color('primary'),
             Action::make('export')
-                ->label('Export Report in PDF'),  
+                ->label('Export Report in PDF')
+                ->action('exportReport'),  
         ];
     }
 
@@ -94,6 +96,29 @@ class MonthlyReport extends Page
         // Dispatch event for any components that might be listening
         $this->dispatch('update-selected-month', month: $month);
     }
+
+    public function exportReport()
+{
+    $transactions = Transaction::whereMonth('transaction_date', $this->selectedMonth)
+        ->where('user_id', auth()->id())
+        ->get();
+
+    $income = $transactions->where('type', 'income')->sum('amount');
+    $expense = $transactions->where('type', 'expense')->sum('amount');
+    $balance = $income - $expense;
+
+    $pdf = Pdf::loadView('month-report', [
+        'transactions' => $transactions,
+        'income' => $income,
+        'expense' => $expense,
+        'balance' => $balance,
+        'month' => $this->selectedMonth,
+    ]);
+
+    return response()->streamDownload(fn () => print($pdf->stream()), 'month-report', [
+        'Content-Type' => 'application/pdf',
+    ]);
+}
 
 
 }
