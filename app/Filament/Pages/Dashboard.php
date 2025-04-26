@@ -2,9 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\RecentTransactionTableWidget;
 use App\Filament\Widgets\TransactionCountWidget;
 use App\Filament\Widgets\TransactionLineChartWidget;
 use App\Filament\Widgets\TransactionPieChartWidget;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
 
 class Dashboard extends Page
@@ -19,6 +21,11 @@ class Dashboard extends Page
             TransactionCountWidget::class,
             TransactionLineChartWidget::class,
             TransactionPieChartWidget::class,
+            RecentTransactionTableWidget::class,
         ];
     }
+
+
+
+
 }

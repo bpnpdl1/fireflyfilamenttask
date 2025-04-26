@@ -22,8 +22,6 @@ class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
 
-    protected static ?string $navigationGroup = 'Transactions';
-
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
     public static function form(Form $form): Form
@@ -78,6 +76,7 @@ class TransactionResource extends Resource
                     ->label('Transaction Type')
                     ->placeholder('All Types'),
 
+                // Improved Date Filter with More Options
                 SelectFilter::make('transaction_date')
                     ->options([
                         'today' => 'Today',
@@ -86,7 +85,10 @@ class TransactionResource extends Resource
                         'last_week' => 'Last Week',
                         'this_month' => 'This Month',
                         'last_month' => 'Last Month',
+                        'last_3_months' => 'Last 3 Months',
+                        'last_6_months' => 'Last 6 Months',
                         'this_year' => 'This Year',
+                        'last_year' => 'Last Year',
                     ])
                     ->label('Date Range')
                     ->placeholder('All Time')
@@ -106,43 +108,14 @@ class TransactionResource extends Resource
                                 ->whereYear('transaction_date', now()->year),
                             'last_month' => $query->whereMonth('transaction_date', now()->subMonth()->month)
                                 ->whereYear('transaction_date', now()->subMonth()->year),
+                            'last_3_months' => $query->where('transaction_date', '>=', now()->subMonths(3)->startOfDay()),
+                            'last_6_months' => $query->where('transaction_date', '>=', now()->subMonths(6)->startOfDay()),
                             'this_year' => $query->whereYear('transaction_date', now()->year),
+                            'last_year' => $query->whereYear('transaction_date', now()->subYear()->year),
                             default => $query,
                         };
                     }),
-
-                Filter::make('date_range')
-                    ->form([
-                        DatePicker::make('from')
-                            ->placeholder(fn ($state): string => now()->subMonth()->format('M d, Y')),
-                        DatePicker::make('until')
-                            ->placeholder(fn ($state): string => now()->format('M d, Y')),
-                    ])
-                    ->query(function ($query, array $data): mixed {
-                        return $query
-                            ->when(
-                                $data['from'],
-                                fn ($query) => $query->whereDate('transaction_date', '>=', $data['from']),
-                            )
-                            ->when(
-                                $data['until'],
-                                fn ($query) => $query->whereDate('transaction_date', '<=', $data['until']),
-                            );
-                    })
-                    ->indicateUsing(function (array $data): array {
-                        $indicators = [];
-
-                        if ($data['from'] ?? null) {
-                            $indicators[] = 'From '.Carbon\Carbon::parse($data['from'])->format('M d, Y');
-                        }
-
-                        if ($data['until'] ?? null) {
-                            $indicators[] = 'Until '.Carbon\Carbon::parse($data['until'])->format('M d, Y');
-                        }
-
-                        return $indicators;
-                    }),
-            ], FiltersLayout::AboveContent)
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

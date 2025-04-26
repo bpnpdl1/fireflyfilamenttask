@@ -3,23 +3,83 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Transaction;
+use Filament\Pages\Dashboard\Actions\FilterAction;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class TransactionLineChartWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Daily Transaction Totals';
+    protected static ?string $heading = 'Transaction Totals';
 
     protected static ?string $maxHeight = '300px';
 
     protected int|string|array $columnSpan = 'full';
 
+    protected function getFilters(): ?array
+    {
+        return [
+            'all' => 'All Time',
+            'today' => 'Today',
+            'yesterday' => 'Yesterday',
+            'last_7_days' => 'Last 7 Days',
+            'last_14_days' => 'Last 14 Days',
+            'last_30_days' => 'Last 30 Days',
+            'this_month' => 'This Month',
+            'last_month' => 'Last Month',
+        ];
+    }
+    
+    protected function filterQuery(): array
+    {
+        $activeFilter = $this->filter ?? 'last_14_days';
+        
+        return match ($activeFilter) {
+            'all' => [
+                'startDate' => now()->subYears(1)->startOfDay(),
+                'endDate' => now()->endOfDay(),
+            ],
+            'today' => [
+                'startDate' => now()->startOfDay(),
+                'endDate' => now()->endOfDay(),
+            ],
+            'yesterday' => [
+                'startDate' => now()->subDay()->startOfDay(),
+                'endDate' => now()->subDay()->endOfDay(),
+            ],
+            'last_7_days' => [
+                'startDate' => now()->subDays(6)->startOfDay(),
+                'endDate' => now()->endOfDay(),
+            ],
+            'last_14_days' => [
+                'startDate' => now()->subDays(13)->startOfDay(),
+                'endDate' => now()->endOfDay(),
+            ],
+            'last_30_days' => [
+                'startDate' => now()->subDays(29)->startOfDay(),
+                'endDate' => now()->endOfDay(),
+            ],
+            'this_month' => [
+                'startDate' => now()->startOfMonth()->startOfDay(),
+                'endDate' => now()->endOfDay(),
+            ],
+            'last_month' => [
+                'startDate' => now()->subMonth()->startOfMonth()->startOfDay(),
+                'endDate' => now()->subMonth()->endOfMonth()->endOfDay(),
+            ],
+            default => [
+                'startDate' => now()->subDays(13)->startOfDay(),
+                'endDate' => now()->endOfDay(),
+            ],
+        };
+    }
+
     protected function getData(): array
     {
-        // Get data for the last 14 days
-        $startDate = now()->subDays(13)->startOfDay();
-        $endDate = now()->endOfDay();
+        // Get date range based on filter
+        $dateRange = $this->filterQuery();
+        $startDate = $dateRange['startDate'];
+        $endDate = $dateRange['endDate'];
 
         // Query to get daily transaction totals
         $transactions = Transaction::where('user_id', Auth::id())
