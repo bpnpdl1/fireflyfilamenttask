@@ -14,11 +14,11 @@ class TransactionPieChartWidget extends ChartWidget
         $totalIncomes = Transaction::where('user_id', auth()->id())
             ->where('type', 'income')
             ->sum('amount');
-            
+
         $totalExpenses = Transaction::where('user_id', auth()->id())
             ->where('type', 'expense')
             ->sum('amount');
-       
+
         return [
             'labels' => ['Income', 'Expense'],
             'datasets' => [

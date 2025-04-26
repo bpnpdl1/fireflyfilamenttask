@@ -3,33 +3,28 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Transaction;
-use App\Traits\HasMonth;
 use Carbon\Carbon;
-use Filament\Support\Colors\Color;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 
 class ExpenseBarChartWidget extends ChartWidget
 {
-
     public $selectedMonth;
-    
+
     protected static ?string $heading = 'Monthly Expense Breakdown';
-    
+
     protected static ?string $maxHeight = '300px';
-    
-    protected int | string | array $columnSpan = 'full';
-    
-    
+
+    protected int|string|array $columnSpan = 'full';
+
     public function mount(): void
     {
         // Using the parent mount method
         parent::mount();
-        
+
         // Default to current month if not provided
-        if (!$this->selectedMonth) {
+        if (! $this->selectedMonth) {
             $this->selectedMonth = now()->format('Y-m');
         }
     }
@@ -39,7 +34,7 @@ class ExpenseBarChartWidget extends ChartWidget
     {
         // Update the selectedMonth property
         $this->selectedMonth = $month;
-        
+
         // Force chart to refresh with new data
         $this->dispatch('chartjs-update');
     }
@@ -49,43 +44,43 @@ class ExpenseBarChartWidget extends ChartWidget
         // Parse selected month
         $date = Carbon::parse($this->selectedMonth);
         $daysInMonth = $date->daysInMonth;
-        
+
         // Calculate week ranges for the month
         $weeks = [];
         $currentDay = $date->copy()->startOfMonth();
         $weekNumber = 1;
-        
+
         while ($currentDay->month === $date->month) {
             $weekStart = $currentDay->copy();
             $weekEnd = min($weekStart->copy()->endOfWeek(), $date->copy()->endOfMonth());
-            
+
             $weeks[] = [
                 'start' => $weekStart->format('Y-m-d'),
                 'end' => $weekEnd->format('Y-m-d'),
-                'label' => "Week $weekNumber ({$weekStart->format('M d')} - {$weekEnd->format('M d')})"
+                'label' => "Week $weekNumber ({$weekStart->format('M d')} - {$weekEnd->format('M d')})",
             ];
-            
+
             $currentDay = $weekEnd->copy()->addDay();
             $weekNumber++;
         }
-        
+
         // Get expense data for each week of the month
         $weeklyExpenses = [];
         $weekLabels = [];
-        
+
         foreach ($weeks as $week) {
             $expense = Transaction::where('user_id', Auth::id())
                 ->where('type', 'expense')
                 ->whereBetween('transaction_date', [$week['start'], $week['end']])
                 ->sum('amount');
-                
+
             $weeklyExpenses[] = $expense;
             $weekLabels[] = $week['label'];
         }
-        
+
         // Get the month name for display
         $monthName = $date->format('F Y');
-        
+
         return [
             'labels' => $weekLabels,
             'datasets' => [
@@ -106,7 +101,7 @@ class ExpenseBarChartWidget extends ChartWidget
     {
         return 'bar';
     }
-    
+
     protected function getOptions(): array
     {
         return [

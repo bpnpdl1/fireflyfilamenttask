@@ -60,7 +60,7 @@ class TransactionResource extends Resource
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('amount')
-                   ->money('NPR')
+                    ->money('NPR')
                     ->label('Amount'),
                 TextColumn::make('type')
                     ->badge()
@@ -77,7 +77,7 @@ class TransactionResource extends Resource
                     ])
                     ->label('Transaction Type')
                     ->placeholder('All Types'),
-                
+
                 SelectFilter::make('transaction_date')
                     ->options([
                         'today' => 'Today',
@@ -103,14 +103,14 @@ class TransactionResource extends Resource
                                 now()->subWeek()->endOfWeek(),
                             ]),
                             'this_month' => $query->whereMonth('transaction_date', now()->month)
-                                                 ->whereYear('transaction_date', now()->year),
+                                ->whereYear('transaction_date', now()->year),
                             'last_month' => $query->whereMonth('transaction_date', now()->subMonth()->month)
-                                                 ->whereYear('transaction_date', now()->subMonth()->year),
+                                ->whereYear('transaction_date', now()->subMonth()->year),
                             'this_year' => $query->whereYear('transaction_date', now()->year),
                             default => $query,
                         };
                     }),
-                
+
                 Filter::make('date_range')
                     ->form([
                         DatePicker::make('from')
@@ -122,24 +122,24 @@ class TransactionResource extends Resource
                         return $query
                             ->when(
                                 $data['from'],
-                                fn($query) => $query->whereDate('transaction_date', '>=', $data['from']),
+                                fn ($query) => $query->whereDate('transaction_date', '>=', $data['from']),
                             )
                             ->when(
                                 $data['until'],
-                                fn($query) => $query->whereDate('transaction_date', '<=', $data['until']),
+                                fn ($query) => $query->whereDate('transaction_date', '<=', $data['until']),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
-                        
+
                         if ($data['from'] ?? null) {
-                            $indicators[] = 'From ' . Carbon\Carbon::parse($data['from'])->format('M d, Y');
+                            $indicators[] = 'From '.Carbon\Carbon::parse($data['from'])->format('M d, Y');
                         }
-                        
+
                         if ($data['until'] ?? null) {
-                            $indicators[] = 'Until ' . Carbon\Carbon::parse($data['until'])->format('M d, Y');
+                            $indicators[] = 'Until '.Carbon\Carbon::parse($data['until'])->format('M d, Y');
                         }
-                        
+
                         return $indicators;
                     }),
             ], FiltersLayout::AboveContent)

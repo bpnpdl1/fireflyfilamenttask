@@ -6,7 +6,6 @@ use Filament\Pages\Auth\Login as AuthLogin;
 
 class Login extends AuthLogin
 {
-
     public function mount(): void
     {
         parent::mount();

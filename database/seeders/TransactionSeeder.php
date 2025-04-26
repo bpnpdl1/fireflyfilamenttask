@@ -14,9 +14,7 @@ class TransactionSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::first(); 
-
-     
+        $user = User::first();
 
         $descriptions = [
             'Salary Payment',
@@ -59,7 +57,6 @@ class TransactionSeeder extends Seeder
                 'user_id' => $user->id,
             ]);
         }
-
 
     }
 }

@@ -5,7 +5,6 @@ namespace App\Filament\Pages;
 use App\Filament\Widgets\TransactionCountWidget;
 use App\Filament\Widgets\TransactionLineChartWidget;
 use App\Filament\Widgets\TransactionPieChartWidget;
-use App\Models\Transaction;
 use Filament\Pages\Page;
 
 class Dashboard extends Page
@@ -22,7 +21,4 @@ class Dashboard extends Page
             TransactionPieChartWidget::class,
         ];
     }
-
-
-
 }

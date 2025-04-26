@@ -3,35 +3,22 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\TransactionCountWidget;
-use App\Filament\Widgets\TransactionLineChartWidget;
-use App\Filament\Widgets\TransactionPieChartWidget;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
-use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
-use Filament\Tables\Enums\FiltersLayout;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Table;
 
-class MonthlyReport extends Page 
+class MonthlyReport extends Page
 {
-
-
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
 
     protected static string $view = 'filament.pages.monthly-report';
 
     public $selectedMonth;
 
-    public $activeTab='income';
+    public $activeTab = 'income';
 
     public function mount()
     {
@@ -45,20 +32,27 @@ class MonthlyReport extends Page
         ];
     }
 
-
     protected function getHeaderActions(): array
     {
+
+        $month = $this->selectedMonth;
+
         return [
             Action::make('month')
                 ->label('Select Month')
                 ->action('selectMonth')
-                ->view('filament.fields.datepicker',[
+                ->view('filament.fields.datepicker', [
                     'selectedMonth' => $this->selectedMonth,
                 ])
                 ->color('primary'),
             Action::make('export')
                 ->label('Export Report in PDF')
-                ->action('exportReport'),  
+                ->action(function () use ($month) {
+
+                    return to_route('monthly-report.download', [
+                        'month' => $month,
+                    ]);
+                }),
         ];
     }
 
@@ -89,36 +83,34 @@ class MonthlyReport extends Page
     {
         // Update the selectedMonth property
         $this->selectedMonth = $month;
-        
+
         // Refresh all widgets to reflect the new month - using the correct method
         $this->dispatch('filament.refreshWidgets');
-        
+
         // Dispatch event for any components that might be listening
         $this->dispatch('update-selected-month', month: $month);
     }
 
     public function exportReport()
-{
-    $transactions = Transaction::whereMonth('transaction_date', $this->selectedMonth)
-        ->where('user_id', auth()->id())
-        ->get();
+    {
+        $transactions = Transaction::whereMonth('transaction_date', $this->selectedMonth)
+            ->where('user_id', auth()->id())
+            ->get();
 
-    $income = $transactions->where('type', 'income')->sum('amount');
-    $expense = $transactions->where('type', 'expense')->sum('amount');
-    $balance = $income - $expense;
+        $income = $transactions->where('type', 'income')->sum('amount');
+        $expense = $transactions->where('type', 'expense')->sum('amount');
+        $balance = $income - $expense;
 
-    $pdf = Pdf::loadView('month-report', [
-        'transactions' => $transactions,
-        'income' => $income,
-        'expense' => $expense,
-        'balance' => $balance,
-        'month' => $this->selectedMonth,
-    ]);
+        $pdf = Pdf::loadView('month-report', [
+            'transactions' => $transactions,
+            'income' => $income,
+            'expense' => $expense,
+            'balance' => $balance,
+            'month' => $this->selectedMonth,
+        ]);
 
-    return response()->streamDownload(fn () => print($pdf->stream()), 'month-report', [
-        'Content-Type' => 'application/pdf',
-    ]);
-}
-
-
+        return response()->streamDownload(fn () => print ($pdf->stream()), 'month-report', [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
 }
