@@ -5,16 +5,42 @@ namespace App\Models;
 use App\Enums\TransactionTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
     /** @use HasFactory<\Database\Factories\TransactionFactory> */
     use HasFactory;
+    
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'description',
+        'amount',
+        'type',
+        'transaction_date',
+        'user_id',
+    ];
 
-    protected function casts()
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'type' => TransactionTypeEnum::class,
+        'transaction_date' => 'date',
+        'amount' => 'float',
+    ];
+    
+    /**
+     * Get the user that owns the transaction.
+     */
+    public function user(): BelongsTo
     {
-        return [
-            'type' => TransactionTypeEnum::class,
-        ];
+        return $this->belongsTo(User::class);
     }
 }

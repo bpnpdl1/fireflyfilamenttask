@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Enums\TransactionTypeEnum;
 use App\Models\Transaction;
+use App\Services\TransactionService;
 use Carbon\Carbon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -14,8 +15,14 @@ use Livewire\Attributes\On;
 class IncomeTableWidget extends BaseWidget
 {
     public $selectedMonth;
+    protected TransactionService $transactionService;
 
     protected static ?string $heading = 'Monthly Income Transactions';
+
+    public function boot()
+    {
+        $this->transactionService = app(TransactionService::class);
+    }
 
     public function mount(): void
     {
@@ -36,13 +43,13 @@ class IncomeTableWidget extends BaseWidget
 
     public function table(Table $table): Table
     {
+        // Get monthly income transactions from the service
+        $incomeTransactionIds = $this->transactionService->getTransactionsByMonth($this->selectedMonth, TransactionTypeEnum::INCOME->value)
+            ->pluck('id');
+
         return $table
             ->query(
-                Transaction::query()
-                    ->where('type', TransactionTypeEnum::INCOME)
-                    ->where('user_id', Auth::id())
-                    ->whereMonth('transaction_date', Carbon::parse($this->selectedMonth)->month)
-                    ->whereYear('transaction_date', Carbon::parse($this->selectedMonth)->year)
+                Transaction::query()->whereIn('id', $incomeTransactionIds)
             )
             ->columns([
                 TextColumn::make('description')

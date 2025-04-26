@@ -2,35 +2,51 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Transaction;
+use App\Services\TransactionService;
 use Carbon\Carbon;
 use EightyNine\FilamentAdvancedWidget\AdvancedStatsOverviewWidget\Stat;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 
 class TransactionCountWidget extends BaseWidget
 {
     public $selectedMonth;
+    protected TransactionService $transactionService;
+
+    public function boot()
+    {
+        $this->transactionService = app(TransactionService::class);
+        
+        // Initialize selectedMonth in boot method if not set
+        if (!$this->selectedMonth) {
+            $this->selectedMonth = now()->format('Y-m');
+        }
+    }
 
     #[On('update-selected-month')]
     public function updateSelectedMonth($month): void
     {
         $this->selectedMonth = $month;
-
         $this->dispatch('reload');
     }
 
     protected function getStats(): array
     {
-        $currentMonthIncome = $this->getIncome();
-        $currentMonthExpense = $this->getExpense();
-        $currentMonthBalance = $this->getBalance();
+        // Ensure we have a default value for selectedMonth
+        $monthToUse = $this->selectedMonth ?? now()->format('Y-m');
         
-        $previousMonthDate = Carbon::parse($this->selectedMonth)->subMonth()->format('Y-m');
-        $previousMonthIncome = $this->getIncomeForMonth($previousMonthDate);
-        $previousMonthExpense = $this->getExpenseForMonth($previousMonthDate);
-        $previousMonthBalance = $previousMonthIncome - $previousMonthExpense;
+        // Get current month data using the service
+        $currentMonthSummary = $this->transactionService->getMonthlySummary($monthToUse);
+        $currentMonthIncome = $currentMonthSummary['income'];
+        $currentMonthExpense = $currentMonthSummary['expense'];
+        $currentMonthBalance = $currentMonthSummary['balance'];
+        
+        // Get previous month data using the service
+        $previousMonthDate = Carbon::parse($monthToUse)->subMonth()->format('Y-m');
+        $previousMonthSummary = $this->transactionService->getMonthlySummary($previousMonthDate);
+        $previousMonthIncome = $previousMonthSummary['income'];
+        $previousMonthExpense = $previousMonthSummary['expense'];
+        $previousMonthBalance = $previousMonthSummary['balance'];
         
         // Calculate percentage changes
         $incomeChange = $previousMonthIncome > 0 
@@ -46,10 +62,10 @@ class TransactionCountWidget extends BaseWidget
             : ($currentMonthBalance > 0 ? 100 : ($currentMonthBalance < 0 ? -100 : 0));
         
         return [
-            Stat::make('Total Income',  number_format($currentMonthIncome, 2))
+            Stat::make('Total Income', 'NPR ' . number_format($currentMonthIncome, 2))
                 ->icon('heroicon-o-banknotes')
                 ->label('Total Income')
-                ->progress(min(100, max(0, $incomeChange + 50))) // Normalize to be between 0-100
+                ->progress(min(100, max(0, $incomeChange + 50)))
                 ->progressBarColor($incomeChange >= 0 ? 'success' : 'danger')
                 ->iconBackgroundColor('success')
                 ->chartColor($incomeChange >= 0 ? 'success' : 'danger')
@@ -59,10 +75,10 @@ class TransactionCountWidget extends BaseWidget
                 ->descriptionColor($incomeChange >= 0 ? 'success' : 'danger')
                 ->iconColor('success'),
 
-            Stat::make('Total Expense', number_format($currentMonthExpense, 2))
+            Stat::make('Total Expense', 'NPR ' . number_format($currentMonthExpense, 2))
                 ->icon('heroicon-o-credit-card')
                 ->label('Total Expense')
-                ->progress(min(100, max(0, 100 - $expenseChange))) // Inverse scale for expenses (less is better)
+                ->progress(min(100, max(0, 100 - $expenseChange)))
                 ->progressBarColor($expenseChange <= 0 ? 'success' : 'danger')
                 ->iconBackgroundColor('danger')
                 ->chartColor($expenseChange <= 0 ? 'success' : 'danger')
@@ -72,10 +88,10 @@ class TransactionCountWidget extends BaseWidget
                 ->descriptionColor($expenseChange <= 0 ? 'success' : 'danger')
                 ->iconColor('danger'),
 
-            Stat::make('Current Balance', number_format($currentMonthBalance, 2))
+            Stat::make('Current Balance', 'NPR ' . number_format($currentMonthBalance, 2))
                 ->icon('heroicon-o-scale')
                 ->label('Current Balance')
-                ->progress(min(100, max(0, $balanceChange + 50))) // Normalize to be between 0-100
+                ->progress(min(100, max(0, $balanceChange + 50)))
                 ->progressBarColor($balanceChange >= 0 ? 'primary' : 'danger')
                 ->iconBackgroundColor('primary')
                 ->chartColor($balanceChange >= 0 ? 'primary' : 'danger')
@@ -114,52 +130,5 @@ class TransactionCountWidget extends BaseWidget
         $direction = $isIncrease ? "increase" : "decrease";
         
         return "$magnitude $direction of $absChange% from last month";
-    }
-    
-    /**
-     * Get income for a specific month
-     */
-    protected function getIncomeForMonth(string $month): float
-    {
-        return Transaction::where('user_id', Auth::id())
-            ->where('type', 'income')
-            ->whereMonth('transaction_date', Carbon::parse($month)->month)
-            ->whereYear('transaction_date', Carbon::parse($month)->year)
-            ->sum('amount');
-    }
-    
-    /**
-     * Get expense for a specific month
-     */
-    protected function getExpenseForMonth(string $month): float
-    {
-        return Transaction::where('user_id', Auth::id())
-            ->where('type', 'expense')
-            ->whereMonth('transaction_date', Carbon::parse($month)->month)
-            ->whereYear('transaction_date', Carbon::parse($month)->year)
-            ->sum('amount');
-    }
-
-    public function getIncome()
-    {
-        return Transaction::where('user_id', Auth::id())
-            ->where('type', 'income')
-            ->whereMonth('transaction_date', Carbon::parse($this->selectedMonth)->month)
-            ->whereYear('transaction_date', Carbon::parse($this->selectedMonth)->year)
-            ->sum('amount');
-    }
-
-    public function getExpense()
-    {
-        return Transaction::where('user_id', Auth::id())
-            ->where('type', 'expense')
-            ->whereMonth('transaction_date', Carbon::parse($this->selectedMonth)->month)
-            ->whereYear('transaction_date', Carbon::parse($this->selectedMonth)->year)
-            ->sum('amount');
-    }
-
-    public function getBalance()
-    {
-        return $this->getIncome() - $this->getExpense();
     }
 }

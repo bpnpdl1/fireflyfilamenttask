@@ -11,7 +11,7 @@ class Login extends AuthLogin
         parent::mount();
 
         $this->data = [
-            'email' => 'admin@gmail.com',
+            'email' => 'testuser@gmail.com',
             'password' => 'password',
         ];
     }

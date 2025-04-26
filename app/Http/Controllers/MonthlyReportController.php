@@ -3,39 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TransactionTypeEnum;
-use App\Models\Transaction;
+use App\Services\TransactionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
 
 class MonthlyReportController extends Controller
 {
+    protected TransactionService $transactionService;
+    
+    public function __construct(TransactionService $transactionService)
+    {
+        $this->transactionService = $transactionService;
+    }
+
     public function downloadReport($month)
     {
-
-        $transactions = Transaction::where('user_id', Auth::id())
-            ->whereMonth('transaction_date', Carbon::parse($month)->month)
-            ->whereYear('transaction_date', Carbon::parse($month)->year)
-            ->get();
-
-        $income = $transactions->where('type', TransactionTypeEnum::INCOME)->sum('amount');
-        $expense = $transactions->where('type', TransactionTypeEnum::EXPENSE)->sum('amount');
-        $balance = $income - $expense;
+        // Get all transactions for the month using the service
+        $transactions = $this->transactionService->getTransactionsByMonth($month);
+        
+        // Get the monthly summary data using the service
+        $summary = $this->transactionService->getMonthlySummary($month);
         $transactionTypes = TransactionTypeEnum::cases();
-
+        
         $pdf = Pdf::loadView('month-report', [
             'transactions' => $transactions,
-            'income' => $income,
-            'expense' => $expense,
-            'balance' => $balance,
+            'income' => $summary['income'],
+            'expense' => $summary['expense'],
+            'balance' => $summary['balance'],
             'month' => $month,
             'transactionTypes' => $transactionTypes,
         ]);
 
         // Generate a proper filename with the month and year
-        $filename = 'monthly-report-'.date('Y-m', strtotime($month)).'.pdf';
-
+        $filename = 'monthly-report-' . Carbon::parse($month)->format('Y-m') . '.pdf';
+        
         // Return the PDF as a download response
-        return $pdf->stream($filename);
+        return $pdf->download($filename);
     }
 }
