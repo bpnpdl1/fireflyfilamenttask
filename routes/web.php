@@ -4,7 +4,7 @@ use App\Http\Controllers\MonthlyReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return to_route('filament.user.auth.login');
 });
 
 Route::get('/monthly-report/{month}', [MonthlyReportController::class, 'downloadReport'])
