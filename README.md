@@ -14,6 +14,7 @@ Task Demo : https://transactiontracker.bpnpdl.com.np/
 -   **Filtering**: Filter transactions by type (Income/Expense), According to days, months and year and Trash Datas.
 -   **Data Validation**: Comprehensive validation for all transaction data
 -   **User Authentication**: Secure user accounts with Laravel's authentication system
+-   **Monthly Transaction Report**: Monthly Transactions Report for Income and Expenses with their month filtering and export the pdf data.
 
 ## Screenshots
 
