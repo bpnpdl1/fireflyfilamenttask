@@ -34,6 +34,8 @@ _List of all transactions with filtering capability_
 _Form for adding new income or expense transactions_
 
 ### Monthly Report Generation
+![image](https://github.com/user-attachments/assets/f48f9804-f17e-4106-86d0-45c80abde0bb)
+
 ![image](https://github.com/user-attachments/assets/e3c769b6-1b6e-448f-8113-be6d9786e4d2)
 _Monthly Report Exported to pdf
 
