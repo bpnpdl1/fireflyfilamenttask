@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Transaction;
-use Filament\Pages\Dashboard\Actions\FilterAction;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,11 +28,11 @@ class TransactionLineChartWidget extends ChartWidget
             'last_month' => 'Last Month',
         ];
     }
-    
+
     protected function filterQuery(): array
     {
         $activeFilter = $this->filter ?? 'last_14_days';
-        
+
         return match ($activeFilter) {
             'all' => [
                 'startDate' => now()->subYears(1)->startOfDay(),
@@ -165,7 +164,7 @@ class TransactionLineChartWidget extends ChartWidget
         $incomeData = [];
         $expenseData = [];
         $balanceData = [];
-        
+
         // We'll use created_at since transaction_date doesn't store time
         $transactions = Transaction::where('user_id', Auth::id())
             ->whereDate('transaction_date', $date->format('Y-m-d'))
@@ -177,24 +176,24 @@ class TransactionLineChartWidget extends ChartWidget
             ->groupBy('hour')
             ->orderBy('hour')
             ->get();
-            
+
         // Generate all hours in the day (0-23)
         for ($hour = 0; $hour < 24; $hour++) {
             // Format hour as 1 AM, 2 PM, etc.
             $formattedHour = date('g A', mktime($hour, 0, 0));
             $labels[] = $formattedHour;
-            
+
             $hourData = $transactions->firstWhere('hour', $hour);
-            
+
             $income = $hourData ? $hourData->income : 0;
             $expense = $hourData ? $hourData->expense : 0;
             $balance = $income - $expense;
-            
+
             $incomeData[] = $income;
             $expenseData[] = $expense;
             $balanceData[] = $balance;
         }
-        
+
         return [
             'labels' => $labels,
             'datasets' => [

@@ -6,7 +6,6 @@ use App\Enums\TransactionTypeEnum;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\TransactionService;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,16 +14,17 @@ class TransactionServiceTest extends TestCase
     use RefreshDatabase;
 
     protected TransactionService $service;
+
     protected User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
         $this->actingAs($this->user);
-        
-        $this->service = new TransactionService();
+
+        $this->service = new TransactionService;
     }
 
     public function test_create_transaction(): void
@@ -87,7 +87,7 @@ class TransactionServiceTest extends TestCase
         $result = $this->service->deleteTransaction($transaction->id);
 
         $this->assertTrue($result);
-        $this->assertDatabaseMissing('transactions', [
+        $this->assertSoftDeleted('transactions', [
             'id' => $transaction->id,
         ]);
     }
@@ -100,13 +100,13 @@ class TransactionServiceTest extends TestCase
             'transaction_date' => '2025-04-10',
             'type' => TransactionTypeEnum::INCOME,
         ]);
-        
+
         Transaction::factory()->create([
             'user_id' => $this->user->id,
             'transaction_date' => '2025-04-15',
             'type' => TransactionTypeEnum::EXPENSE,
         ]);
-        
+
         Transaction::factory()->create([
             'user_id' => $this->user->id,
             'transaction_date' => '2025-04-20',
@@ -131,14 +131,14 @@ class TransactionServiceTest extends TestCase
             'type' => TransactionTypeEnum::INCOME,
             'amount' => 1000,
         ]);
-        
+
         Transaction::factory()->create([
             'user_id' => $this->user->id,
             'transaction_date' => '2025-04-20',
             'type' => TransactionTypeEnum::INCOME,
             'amount' => 500,
         ]);
-        
+
         // Create expense transactions
         Transaction::factory()->create([
             'user_id' => $this->user->id,
@@ -146,7 +146,7 @@ class TransactionServiceTest extends TestCase
             'type' => TransactionTypeEnum::EXPENSE,
             'amount' => 300,
         ]);
-        
+
         Transaction::factory()->create([
             'user_id' => $this->user->id,
             'transaction_date' => '2025-04-25',
@@ -170,14 +170,14 @@ class TransactionServiceTest extends TestCase
             'type' => TransactionTypeEnum::INCOME,
             'amount' => 500,
         ]);
-        
+
         Transaction::factory()->create([
             'user_id' => $this->user->id,
             'transaction_date' => '2025-04-10', // Second week
             'type' => TransactionTypeEnum::INCOME,
             'amount' => 300,
         ]);
-        
+
         Transaction::factory()->create([
             'user_id' => $this->user->id,
             'transaction_date' => '2025-04-20', // Third week

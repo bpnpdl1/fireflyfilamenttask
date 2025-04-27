@@ -18,8 +18,11 @@ class EditTransaction extends EditRecord
             Actions\DeleteAction::make()
                 ->using(function (Model $record) {
                     $transactionService = app(TransactionService::class);
+
                     return $transactionService->deleteTransaction($record->id);
                 }),
+            Actions\ForceDeleteAction::make(),
+            Actions\RestoreAction::make(),
         ];
     }
 
@@ -29,7 +32,7 @@ class EditTransaction extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         $transactionService = app(TransactionService::class);
-        
+
         return $transactionService->updateTransaction($record->id, $data);
     }
 }

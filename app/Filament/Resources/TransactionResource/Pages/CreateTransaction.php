@@ -22,7 +22,7 @@ class CreateTransaction extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $transactionService = app(TransactionService::class);
-        
+
         return $transactionService->createTransaction($data);
     }
 }

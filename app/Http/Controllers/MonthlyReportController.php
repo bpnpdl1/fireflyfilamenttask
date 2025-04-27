@@ -10,7 +10,7 @@ use Carbon\Carbon;
 class MonthlyReportController extends Controller
 {
     protected TransactionService $transactionService;
-    
+
     public function __construct(TransactionService $transactionService)
     {
         $this->transactionService = $transactionService;
@@ -20,11 +20,11 @@ class MonthlyReportController extends Controller
     {
         // Get all transactions for the month using the service
         $transactions = $this->transactionService->getTransactionsByMonth($month);
-        
+
         // Get the monthly summary data using the service
         $summary = $this->transactionService->getMonthlySummary($month);
         $transactionTypes = TransactionTypeEnum::cases();
-        
+
         $pdf = Pdf::loadView('month-report', [
             'transactions' => $transactions,
             'income' => $summary['income'],
@@ -35,8 +35,8 @@ class MonthlyReportController extends Controller
         ]);
 
         // Generate a proper filename with the month and year
-        $filename = 'monthly-report-' . Carbon::parse($month)->format('Y-m') . '.pdf';
-        
+        $filename = 'monthly-report-'.Carbon::parse($month)->format('Y-m').'.pdf';
+
         // Return the PDF as a download response
         return $pdf->download($filename);
     }

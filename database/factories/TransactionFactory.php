@@ -51,9 +51,9 @@ class TransactionFactory extends Factory
     {
         $type = $this->faker->randomElement([
             TransactionTypeEnum::INCOME->value,
-            TransactionTypeEnum::EXPENSE->value
+            TransactionTypeEnum::EXPENSE->value,
         ]);
-        
+
         // Generate amount based on transaction type (same as in seeder)
         $amount = $type === TransactionTypeEnum::INCOME->value
             ? $this->faker->numberBetween(1000, 5000)

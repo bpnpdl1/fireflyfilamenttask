@@ -15,9 +15,11 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TransactionResource extends Resource
 {
@@ -70,14 +72,9 @@ class TransactionResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('type')
-                    ->options([
-                        'income' => 'Income',
-                        'expense' => 'Expense',
-                    ])
+                    ->options(TransactionTypeEnum::class)
                     ->label('Transaction Type')
                     ->placeholder('All Types'),
-
-                // Improved Date Filter with More Options
                 SelectFilter::make('transaction_date')
                     ->options([
                         'today' => 'Today',
@@ -116,20 +113,33 @@ class TransactionResource extends Resource
                             default => $query,
                         };
                     }),
-            ])
+                TrashedFilter::make(),
+            ], FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->using(function ($record) {
                         $transactionService = app(TransactionService::class);
+
                         return $transactionService->deleteTransaction($record->id);
                     }),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
+            ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
             ]);
     }
 

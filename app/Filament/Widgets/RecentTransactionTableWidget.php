@@ -4,22 +4,20 @@ namespace App\Filament\Widgets;
 
 use App\Models\Transaction;
 use App\Services\TransactionService;
-use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
-use Illuminate\Support\Facades\Auth;
 
 class RecentTransactionTableWidget extends BaseWidget
 {
     protected TransactionService $transactionService;
-    
+
     public function boot()
     {
         $this->transactionService = app(TransactionService::class);
     }
-    
+
     public function table(Table $table): Table
     {
         // Get recent transactions from the service
@@ -27,7 +25,7 @@ class RecentTransactionTableWidget extends BaseWidget
             ->sortByDesc('transaction_date')
             ->take(8)
             ->pluck('id');
-            
+
         return $table
             ->query(
                 // Query only the transactions returned by the service
@@ -49,10 +47,10 @@ class RecentTransactionTableWidget extends BaseWidget
             ])
             ->paginated(false)
             ->headerActions([
-               Action::make('View All')
-               ->action(function () {
-                   $this->redirect(route('filament.user.resources.transactions.index'));
-               }),
+                Action::make('View All')
+                    ->action(function () {
+                        $this->redirect(route('filament.user.resources.transactions.index'));
+                    }),
             ]);
     }
 }

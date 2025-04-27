@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('type');
             $table->date('transaction_date');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

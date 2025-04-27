@@ -13,8 +13,6 @@ class TransactionService
 {
     /**
      * Get all transactions.
-     *
-     * @return Collection
      */
     public function getAllTransactions(): Collection
     {
@@ -23,9 +21,6 @@ class TransactionService
 
     /**
      * Get a specific transaction by ID.
-     *
-     * @param int $id
-     * @return Transaction|null
      */
     public function getTransactionById(int $id): ?Transaction
     {
@@ -34,85 +29,68 @@ class TransactionService
 
     /**
      * Create a new transaction.
-     *
-     * @param array $data
-     * @return Transaction
      */
     public function createTransaction(array $data): Transaction
     {
         $data['user_id'] = Auth::id();
+
         return Transaction::create($data);
     }
 
     /**
      * Update an existing transaction.
-     *
-     * @param int $id
-     * @param array $data
-     * @return Transaction|null
      */
     public function updateTransaction(int $id, array $data): ?Transaction
     {
         $transaction = $this->getTransactionById($id);
-        
-        if (!$transaction) {
+
+        if (! $transaction) {
             return null;
         }
-        
+
         $transaction->update($data);
+
         return $transaction->fresh();
     }
 
     /**
      * Delete a transaction.
-     *
-     * @param int $id
-     * @return bool
      */
     public function deleteTransaction(int $id): bool
     {
         $transaction = $this->getTransactionById($id);
-        
-        if (!$transaction) {
+
+        if (! $transaction) {
             return false;
         }
-        
+
         return $transaction->delete();
     }
 
     /**
      * Get transactions for a specific date range.
-     *
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @param string|null $type
-     * @return Collection
      */
     public function getTransactionsByDateRange(?string $startDate = null, ?string $endDate = null, ?string $type = null): Collection
     {
         $query = Transaction::where('user_id', Auth::id());
-        
+
         if ($startDate) {
             $query->whereDate('transaction_date', '>=', $startDate);
         }
-        
+
         if ($endDate) {
             $query->whereDate('transaction_date', '<=', $endDate);
         }
-        
+
         if ($type) {
             $query->where('type', $type);
         }
-        
+
         return $query->get();
     }
 
     /**
      * Get total income for a date range.
-     *
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @return float
      */
     public function getTotalIncome(?string $startDate = null, ?string $endDate = null): float
     {
@@ -121,10 +99,6 @@ class TransactionService
 
     /**
      * Get total expenses for a date range.
-     *
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @return float
      */
     public function getTotalExpenses(?string $startDate = null, ?string $endDate = null): float
     {
@@ -133,10 +107,6 @@ class TransactionService
 
     /**
      * Get balance (income - expenses) for a date range.
-     *
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @return float
      */
     public function getBalance(?string $startDate = null, ?string $endDate = null): float
     {
@@ -145,66 +115,58 @@ class TransactionService
 
     /**
      * Get total amount by transaction type.
-     *
-     * @param TransactionTypeEnum $type
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @return float
      */
     protected function getTotalByType(TransactionTypeEnum $type, ?string $startDate = null, ?string $endDate = null): float
     {
         $query = Transaction::where('user_id', Auth::id())
             ->where('type', $type);
-        
+
         if ($startDate) {
             $query->whereDate('transaction_date', '>=', $startDate);
         }
-        
+
         if ($endDate) {
             $query->whereDate('transaction_date', '<=', $endDate);
         }
-        
+
         return $query->sum('amount') ?? 0;
     }
 
     /**
      * Get transactions by month.
      *
-     * @param string $yearMonth Format: 'Y-m' (e.g., '2025-04')
-     * @param string|null $type
-     * @return Collection
+     * @param  string  $yearMonth  Format: 'Y-m' (e.g., '2025-04')
      */
     public function getTransactionsByMonth(string $yearMonth, ?string $type = null): Collection
     {
         $date = Carbon::parse($yearMonth);
-        
+
         $query = Transaction::where('user_id', Auth::id())
             ->whereYear('transaction_date', $date->year)
             ->whereMonth('transaction_date', $date->month);
-        
+
         if ($type) {
             $query->where('type', $type);
         }
-        
+
         return $query->get();
     }
 
     /**
      * Get monthly summary data (income, expense, balance).
      *
-     * @param string $yearMonth Format: 'Y-m' (e.g., '2025-04')
-     * @return array
+     * @param  string  $yearMonth  Format: 'Y-m' (e.g., '2025-04')
      */
     public function getMonthlySummary(string $yearMonth): array
     {
         $date = Carbon::parse($yearMonth);
         $startDate = $date->copy()->startOfMonth()->format('Y-m-d');
         $endDate = $date->copy()->endOfMonth()->format('Y-m-d');
-        
+
         $income = $this->getTotalIncome($startDate, $endDate);
         $expense = $this->getTotalExpenses($startDate, $endDate);
         $balance = $income - $expense;
-        
+
         return [
             'income' => $income,
             'expense' => $expense,
@@ -218,9 +180,7 @@ class TransactionService
     /**
      * Get weekly breakdown of transactions within a month.
      *
-     * @param string $yearMonth Format: 'Y-m' (e.g., '2025-04')
-     * @param string|null $type
-     * @return array
+     * @param  string  $yearMonth  Format: 'Y-m' (e.g., '2025-04')
      */
     public function getWeeklyBreakdown(string $yearMonth, ?string $type = null): array
     {
@@ -228,11 +188,11 @@ class TransactionService
         $weeks = [];
         $currentDay = $date->copy()->startOfMonth();
         $weekNumber = 1;
-        
+
         while ($currentDay->month === $date->month) {
             $weekStart = $currentDay->copy();
             $weekEnd = min($weekStart->copy()->endOfWeek(), $date->copy()->endOfMonth());
-            
+
             $weeks[] = [
                 'week' => $weekNumber,
                 'start' => $weekStart->format('Y-m-d'),
@@ -240,39 +200,32 @@ class TransactionService
                 'label' => "Week {$weekNumber} ({$weekStart->format('M d')} - {$weekEnd->format('M d')})",
                 'amount' => $this->getAmountForDateRange($weekStart->format('Y-m-d'), $weekEnd->format('Y-m-d'), $type),
             ];
-            
+
             $currentDay = $weekEnd->copy()->addDay();
             $weekNumber++;
         }
-        
+
         return $weeks;
     }
 
     /**
      * Get total amount for a specific date range and transaction type.
-     *
-     * @param string $startDate
-     * @param string $endDate
-     * @param string|null $type
-     * @return float
      */
     protected function getAmountForDateRange(string $startDate, string $endDate, ?string $type = null): float
     {
         $query = Transaction::where('user_id', Auth::id())
             ->whereDate('transaction_date', '>=', $startDate)
             ->whereDate('transaction_date', '<=', $endDate);
-        
+
         if ($type) {
             $query->where('type', $type);
         }
-        
+
         return $query->sum('amount') ?? 0;
     }
 
     /**
      * Get query builder for transactions.
-     * 
-     * @return Builder
      */
     public function getTransactionsQuery(): Builder
     {

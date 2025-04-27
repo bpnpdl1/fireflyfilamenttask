@@ -5,16 +5,15 @@ namespace App\Filament\Widgets;
 use App\Enums\TransactionTypeEnum;
 use App\Models\Transaction;
 use App\Services\TransactionService;
-use Carbon\Carbon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 
 class IncomeTableWidget extends BaseWidget
 {
     public $selectedMonth;
+
     protected TransactionService $transactionService;
 
     protected static ?string $heading = 'Monthly Income Transactions';

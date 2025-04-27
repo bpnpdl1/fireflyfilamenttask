@@ -11,14 +11,15 @@ use Livewire\Attributes\On;
 class TransactionCountWidget extends BaseWidget
 {
     public $selectedMonth;
+
     protected TransactionService $transactionService;
 
     public function boot()
     {
         $this->transactionService = app(TransactionService::class);
-        
+
         // Initialize selectedMonth in boot method if not set
-        if (!$this->selectedMonth) {
+        if (! $this->selectedMonth) {
             $this->selectedMonth = now()->format('Y-m');
         }
     }
@@ -34,35 +35,35 @@ class TransactionCountWidget extends BaseWidget
     {
         // Ensure we have a default value for selectedMonth
         $monthToUse = $this->selectedMonth ?? now()->format('Y-m');
-        
+
         // Get current month data using the service
         $currentMonthSummary = $this->transactionService->getMonthlySummary($monthToUse);
         $currentMonthIncome = $currentMonthSummary['income'];
         $currentMonthExpense = $currentMonthSummary['expense'];
         $currentMonthBalance = $currentMonthSummary['balance'];
-        
+
         // Get previous month data using the service
         $previousMonthDate = Carbon::parse($monthToUse)->subMonth()->format('Y-m');
         $previousMonthSummary = $this->transactionService->getMonthlySummary($previousMonthDate);
         $previousMonthIncome = $previousMonthSummary['income'];
         $previousMonthExpense = $previousMonthSummary['expense'];
         $previousMonthBalance = $previousMonthSummary['balance'];
-        
+
         // Calculate percentage changes
-        $incomeChange = $previousMonthIncome > 0 
-            ? round((($currentMonthIncome - $previousMonthIncome) / $previousMonthIncome) * 100, 1) 
+        $incomeChange = $previousMonthIncome > 0
+            ? round((($currentMonthIncome - $previousMonthIncome) / $previousMonthIncome) * 100, 1)
             : ($currentMonthIncome > 0 ? 100 : 0);
-            
-        $expenseChange = $previousMonthExpense > 0 
-            ? round((($currentMonthExpense - $previousMonthExpense) / $previousMonthExpense) * 100, 1) 
+
+        $expenseChange = $previousMonthExpense > 0
+            ? round((($currentMonthExpense - $previousMonthExpense) / $previousMonthExpense) * 100, 1)
             : ($currentMonthExpense > 0 ? 100 : 0);
-            
-        $balanceChange = $previousMonthBalance != 0 
-            ? round((($currentMonthBalance - $previousMonthBalance) / abs($previousMonthBalance)) * 100, 1) 
+
+        $balanceChange = $previousMonthBalance != 0
+            ? round((($currentMonthBalance - $previousMonthBalance) / abs($previousMonthBalance)) * 100, 1)
             : ($currentMonthBalance > 0 ? 100 : ($currentMonthBalance < 0 ? -100 : 0));
-        
+
         return [
-            Stat::make('Total Income', 'NPR ' . number_format($currentMonthIncome, 2))
+            Stat::make('Total Income', 'NPR '.number_format($currentMonthIncome, 2))
                 ->icon('heroicon-o-banknotes')
                 ->label('Total Income')
                 ->progress(min(100, max(0, $incomeChange + 50)))
@@ -75,7 +76,7 @@ class TransactionCountWidget extends BaseWidget
                 ->descriptionColor($incomeChange >= 0 ? 'success' : 'danger')
                 ->iconColor('success'),
 
-            Stat::make('Total Expense', 'NPR ' . number_format($currentMonthExpense, 2))
+            Stat::make('Total Expense', 'NPR '.number_format($currentMonthExpense, 2))
                 ->icon('heroicon-o-credit-card')
                 ->label('Total Expense')
                 ->progress(min(100, max(0, 100 - $expenseChange)))
@@ -88,7 +89,7 @@ class TransactionCountWidget extends BaseWidget
                 ->descriptionColor($expenseChange <= 0 ? 'success' : 'danger')
                 ->iconColor('danger'),
 
-            Stat::make('Current Balance', 'NPR ' . number_format($currentMonthBalance, 2))
+            Stat::make('Current Balance', 'NPR '.number_format($currentMonthBalance, 2))
                 ->icon('heroicon-o-scale')
                 ->label('Current Balance')
                 ->progress(min(100, max(0, $balanceChange + 50)))
@@ -102,7 +103,7 @@ class TransactionCountWidget extends BaseWidget
                 ->iconColor('primary'),
         ];
     }
-    
+
     /**
      * Get a descriptive text about the change compared to previous month
      */
@@ -110,25 +111,25 @@ class TransactionCountWidget extends BaseWidget
     {
         $absChange = abs($percentageChange);
         $isIncrease = $percentageChange > 0;
-        
+
         // For zero change
         if ($percentageChange == 0) {
-            return "No change from last month";
+            return 'No change from last month';
         }
-        
+
         // Create description based on magnitude of change
         if ($absChange < 5) {
-            $magnitude = "Slight";
+            $magnitude = 'Slight';
         } elseif ($absChange < 15) {
-            $magnitude = "Moderate";
+            $magnitude = 'Moderate';
         } elseif ($absChange < 30) {
-            $magnitude = "Significant";
+            $magnitude = 'Significant';
         } else {
-            $magnitude = "Major";
+            $magnitude = 'Major';
         }
-        
-        $direction = $isIncrease ? "increase" : "decrease";
-        
+
+        $direction = $isIncrease ? 'increase' : 'decrease';
+
         return "$magnitude $direction of $absChange% from last month";
     }
 }

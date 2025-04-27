@@ -25,7 +25,7 @@ class ListTransactions extends ListRecords
     protected function getTableQuery(): Builder
     {
         $transactionService = app(TransactionService::class);
-        
+
         return $transactionService->getTransactionsQuery();
     }
 }

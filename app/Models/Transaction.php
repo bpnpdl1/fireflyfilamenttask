@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Transaction extends Model
 {
     /** @use HasFactory<\Database\Factories\TransactionFactory> */
-    use HasFactory;
-    
+    use HasFactory, SoftDeletes;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -36,7 +36,7 @@ class Transaction extends Model
         'transaction_date' => 'date',
         'amount' => 'float',
     ];
-    
+
     /**
      * Get the user that owns the transaction.
      */

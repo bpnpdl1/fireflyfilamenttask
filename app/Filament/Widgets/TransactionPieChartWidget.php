@@ -8,9 +8,9 @@ use Filament\Widgets\ChartWidget;
 class TransactionPieChartWidget extends ChartWidget
 {
     protected static ?string $heading = 'Transaction Summary';
-    
+
     public ?string $filter = 'this_month';
-    
+
     protected function getFilters(): ?array
     {
         return [
@@ -25,7 +25,7 @@ class TransactionPieChartWidget extends ChartWidget
             'all_time' => 'All Time',
         ];
     }
-    
+
     protected function filterQuery()
     {
         return match ($this->filter) {
@@ -75,17 +75,17 @@ class TransactionPieChartWidget extends ChartWidget
     protected function getData(): array
     {
         $dateRange = $this->filterQuery();
-        
+
         $query = Transaction::where('user_id', auth()->id());
-        
+
         if ($dateRange['start']) {
             $query->where('transaction_date', '>=', $dateRange['start']);
         }
-        
+
         if ($dateRange['end']) {
             $query->where('transaction_date', '<=', $dateRange['end']);
         }
-        
+
         $totalIncomes = (clone $query)
             ->where('type', 'income')
             ->sum('amount');
@@ -93,14 +93,14 @@ class TransactionPieChartWidget extends ChartWidget
         $totalExpenses = (clone $query)
             ->where('type', 'expense')
             ->sum('amount');
-            
+
         // Calculate the percentage of each
         $total = $totalIncomes + $totalExpenses;
         $incomePercentage = $total > 0 ? round(($totalIncomes / $total) * 100) : 0;
         $expensePercentage = $total > 0 ? round(($totalExpenses / $total) * 100) : 0;
-        
+
         return [
-            'labels' => ['Income (' . $incomePercentage . '%)', 'Expense (' . $expensePercentage . '%)'],
+            'labels' => ['Income ('.$incomePercentage.'%)', 'Expense ('.$expensePercentage.'%)'],
             'datasets' => [
                 [
                     'data' => [$totalIncomes, $totalExpenses],
