@@ -15,6 +15,8 @@ class TransactionLineChartWidget extends ChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    public ?string $filter = 'this_month';
+
     protected function getFilters(): ?array
     {
         return [
@@ -31,7 +33,7 @@ class TransactionLineChartWidget extends ChartWidget
 
     protected function filterQuery(): array
     {
-        $activeFilter = $this->filter ?? 'last_14_days';
+        $activeFilter = $this->filter;
 
         return match ($activeFilter) {
             'all' => [
