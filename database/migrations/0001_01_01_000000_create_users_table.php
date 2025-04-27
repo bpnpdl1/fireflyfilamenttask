@@ -39,7 +39,7 @@ return new class extends Migration
 
         User::create([
             'name' => 'Test User',
-            'email' => 'testuser@gmail.com',
+            'email' => 'testuser@testmail.com',
             'password' => bcrypt('password'),
         ]);
     }
