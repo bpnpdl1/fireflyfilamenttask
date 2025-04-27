@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\TransactionTypeEnum;
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Models\Transaction;
+use App\Services\TransactionService;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Textarea;
@@ -117,8 +118,13 @@ class TransactionResource extends Resource
                     }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->using(function ($record) {
+                        $transactionService = app(TransactionService::class);
+                        return $transactionService->deleteTransaction($record->id);
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -139,6 +145,7 @@ class TransactionResource extends Resource
         return [
             'index' => Pages\ListTransactions::route('/'),
             'create' => Pages\CreateTransaction::route('/create'),
+            'view' => Pages\ViewTransaction::route('/{record}'),
             'edit' => Pages\EditTransaction::route('/{record}/edit'),
         ];
     }

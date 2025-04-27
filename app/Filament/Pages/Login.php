@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Pages;
+namespace App\Filament\Pages;
 
 use Filament\Pages\Auth\Login as AuthLogin;
 

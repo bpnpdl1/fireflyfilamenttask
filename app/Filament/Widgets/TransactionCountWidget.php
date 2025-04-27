@@ -92,13 +92,13 @@ class TransactionCountWidget extends BaseWidget
                 ->icon('heroicon-o-scale')
                 ->label('Current Balance')
                 ->progress(min(100, max(0, $balanceChange + 50)))
-                ->progressBarColor($balanceChange >= 0 ? 'primary' : 'danger')
+                ->progressBarColor($balanceChange >= 0 ? 'success' : 'danger')
                 ->iconBackgroundColor('primary')
-                ->chartColor($balanceChange >= 0 ? 'primary' : 'danger')
+                ->chartColor($balanceChange >= 0 ? 'success' : 'danger')
                 ->iconPosition('start')
                 ->description($this->getChangeDescription($balanceChange, 'balance'))
                 ->descriptionIcon($balanceChange >= 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down', 'before')
-                ->descriptionColor($balanceChange >= 0 ? 'primary' : 'danger')
+                ->descriptionColor($balanceChange >= 0 ? 'success' : 'danger')
                 ->iconColor('primary'),
         ];
     }

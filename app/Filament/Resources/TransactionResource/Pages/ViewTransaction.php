@@ -4,32 +4,36 @@ namespace App\Filament\Resources\TransactionResource\Pages;
 
 use App\Filament\Resources\TransactionResource;
 use App\Services\TransactionService;
+use Filament\Resources\Pages\ViewRecord;
 use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
-class EditTransaction extends EditRecord
+class ViewTransaction extends ViewRecord
 {
     protected static string $resource = TransactionResource::class;
 
+    /**
+     * Define header actions for the view page
+     */
     protected function getHeaderActions(): array
     {
         return [
+            Actions\EditAction::make(),
             Actions\DeleteAction::make()
-                ->using(function (Model $record) {
+                ->using(function ($record) {
                     $transactionService = app(TransactionService::class);
                     return $transactionService->deleteTransaction($record->id);
                 }),
         ];
     }
-
+    
     /**
-     * Override the save method to use TransactionService
+     * Override record retrieval to use TransactionService
      */
-    protected function handleRecordUpdate(Model $record, array $data): Model
+    protected function resolveRecord(int|string $key): Model
     {
         $transactionService = app(TransactionService::class);
         
-        return $transactionService->updateTransaction($record->id, $data);
+        return $transactionService->getTransactionById($key);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\TransactionTypeEnum;
 use App\Models\Transaction;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 
@@ -266,5 +267,15 @@ class TransactionService
         }
         
         return $query->sum('amount') ?? 0;
+    }
+
+    /**
+     * Get query builder for transactions.
+     * 
+     * @return Builder
+     */
+    public function getTransactionsQuery(): Builder
+    {
+        return Transaction::where('user_id', Auth::id())->orderBy('transaction_date', 'desc');
     }
 }

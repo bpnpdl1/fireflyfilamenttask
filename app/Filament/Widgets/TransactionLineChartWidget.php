@@ -81,6 +81,13 @@ class TransactionLineChartWidget extends ChartWidget
         $startDate = $dateRange['startDate'];
         $endDate = $dateRange['endDate'];
 
+        // Check if we're looking at a single day (today or yesterday)
+        $isSingleDay = $startDate->format('Y-m-d') === $endDate->format('Y-m-d');
+
+        if ($isSingleDay) {
+            return $this->getHourlyData($startDate);
+        }
+
         // Query to get daily transaction totals
         $transactions = Transaction::where('user_id', Auth::id())
             ->whereDate('transaction_date', '>=', $startDate)
@@ -115,6 +122,79 @@ class TransactionLineChartWidget extends ChartWidget
             $balanceData[] = $balance;
         }
 
+        return [
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'label' => 'Income',
+                    'data' => $incomeData,
+                    'backgroundColor' => '#4CAF50',
+                    'borderColor' => '#4CAF50',
+                    'pointBackgroundColor' => '#4CAF50',
+                    'pointBorderColor' => '#fff',
+                    'tension' => 0.4,
+                ],
+                [
+                    'label' => 'Expense',
+                    'data' => $expenseData,
+                    'backgroundColor' => '#F44336',
+                    'borderColor' => '#F44336',
+                    'pointBackgroundColor' => '#F44336',
+                    'pointBorderColor' => '#fff',
+                    'tension' => 0.4,
+                ],
+                [
+                    'label' => 'Balance',
+                    'data' => $balanceData,
+                    'backgroundColor' => '#2196F3',
+                    'borderColor' => '#2196F3',
+                    'pointBackgroundColor' => '#2196F3',
+                    'pointBorderColor' => '#fff',
+                    'tension' => 0.4,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Get hourly data for a single day
+     */
+    protected function getHourlyData($date): array
+    {
+        $labels = [];
+        $incomeData = [];
+        $expenseData = [];
+        $balanceData = [];
+        
+        // We'll use created_at since transaction_date doesn't store time
+        $transactions = Transaction::where('user_id', Auth::id())
+            ->whereDate('transaction_date', $date->format('Y-m-d'))
+            ->select(
+                DB::raw('HOUR(created_at) as hour'),
+                DB::raw('SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as income'),
+                DB::raw('SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) as expense')
+            )
+            ->groupBy('hour')
+            ->orderBy('hour')
+            ->get();
+            
+        // Generate all hours in the day (0-23)
+        for ($hour = 0; $hour < 24; $hour++) {
+            // Format hour as 1 AM, 2 PM, etc.
+            $formattedHour = date('g A', mktime($hour, 0, 0));
+            $labels[] = $formattedHour;
+            
+            $hourData = $transactions->firstWhere('hour', $hour);
+            
+            $income = $hourData ? $hourData->income : 0;
+            $expense = $hourData ? $hourData->expense : 0;
+            $balance = $income - $expense;
+            
+            $incomeData[] = $income;
+            $expenseData[] = $expense;
+            $balanceData[] = $balance;
+        }
+        
         return [
             'labels' => $labels,
             'datasets' => [
