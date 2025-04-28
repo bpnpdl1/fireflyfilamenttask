@@ -116,7 +116,6 @@ class TransactionResource extends Resource
                 TrashedFilter::make(),
             ], FiltersLayout::AboveContent)
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->using(function ($record) {
