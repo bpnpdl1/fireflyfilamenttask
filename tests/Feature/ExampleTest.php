@@ -9,7 +9,7 @@ use Tests\TestCase;
 class ExampleTest extends TestCase
 {
     use RefreshDatabase;
-    
+
     /**
      * A basic test example.
      */
@@ -18,7 +18,7 @@ class ExampleTest extends TestCase
         // Option 1: Accept the redirect status
         $response = $this->get('/');
         $response->assertStatus(302); // Changed from 200 to 302
-        
+
         // Option 2: Or test as an authenticated user
         // $user = User::factory()->create();
         // $response = $this->actingAs($user)->get('/');
