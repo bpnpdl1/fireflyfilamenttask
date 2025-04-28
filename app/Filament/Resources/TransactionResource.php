@@ -124,6 +124,7 @@ class TransactionResource extends Resource
                         return $transactionService->deleteTransaction($record->id);
                     }),
                 Tables\Actions\RestoreAction::make(),
+                Tables\Actions\ForceDeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
