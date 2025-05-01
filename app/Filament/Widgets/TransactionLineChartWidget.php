@@ -15,7 +15,7 @@ class TransactionLineChartWidget extends ChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    public ?string $filter = 'this_month';
+    public ?string $filter = 'Last 7 Days';
 
     protected function getFilters(): ?array
     {
