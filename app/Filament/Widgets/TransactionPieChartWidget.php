@@ -9,7 +9,7 @@ class TransactionPieChartWidget extends ChartWidget
 {
     protected static ?string $heading = 'Transaction Summary';
 
-    public ?string $filter = 'This Week';
+    public ?string $filter = 'this_week';
 
     protected function getFilters(): ?array
     {
