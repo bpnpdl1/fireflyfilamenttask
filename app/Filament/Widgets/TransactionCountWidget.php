@@ -23,9 +23,13 @@ class TransactionCountWidget extends BaseWidget
         // Initialize selectedMonth in boot method if not set
         if (! $this->selectedMonth) {
             $this->selectedMonth = now()->format('Y-m');
-
-            $this->description .= 'Monthly Transaction Summary of ' . now()->format('F Y');
         }
+    }
+
+    public function __construct()
+    {
+
+         $this->description="Monthly Transaction Overview for ".now()->format('M Y');
     }
 
     #[On('update-selected-month')]
