@@ -12,15 +12,19 @@ class TransactionCountWidget extends BaseWidget
 {
     public $selectedMonth;
 
+
     protected TransactionService $transactionService;
 
     public function boot()
     {
+
         $this->transactionService = app(TransactionService::class);
 
         // Initialize selectedMonth in boot method if not set
         if (! $this->selectedMonth) {
             $this->selectedMonth = now()->format('Y-m');
+
+            $this->description .= 'Monthly Transaction Summary of ' . now()->format('F Y');
         }
     }
 
